@@ -1,0 +1,22 @@
+# Development override: hot reload for backend, Vite dev server for frontend
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  backend:
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    # Vite default port; uses same Dockerfile `dev` stage as the base compose file
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+      - "5173:5173"
+    working_dir: /app
+    command: sh -c "npm run dev -- --host 0.0.0.0 --port 5173"
+    environment:
+      VITE_API_PROXY_TARGET: http://backend:8000
+      CHOKIDAR_USEPOLLING: "true"
